@@ -156,11 +156,11 @@ const TTSPlayerSheet = ({
   // download controls. Mirrors the cloud-sync paywall in IntegrationsPanel.
   const { userProfilePlan, customizationPurchased } = useQuotaStats();
   const isDownloadPremium = isTTSCacheAllowed(userProfilePlan ?? 'free', customizationPurchased);
-  // Only badge users who can't use it yet: signed out (known at once), or a
+  // Self-hosted users are entitled even while signed out. Only badge a
   // resolved plan without the feature. Suppress it while a signed-in user's
   // plan is still loading so it never flashes at an entitled user.
   const premiumBadge =
-    !user || (userProfilePlan !== undefined && !isDownloadPremium) ? _('Premium') : undefined;
+    !isDownloadPremium && (!user || userProfilePlan !== undefined) ? _('Premium') : undefined;
 
   // A book can carry a coverImageUrl that no longer resolves (cover never
   // extracted, file pruned). A broken <img> still occupies its h-32 box, so
@@ -373,7 +373,7 @@ const TTSPlayerSheet = ({
       snapHeight={showLyrics ? 0.8 : 0.65}
       title={_('Read Aloud')}
       header={header}
-      boxClassName='sm:h-auto! sm:max-h-[85%]! sm:w-[420px]! sm:min-w-0!'
+      boxClassName='br-tts-sheet sm:h-auto! sm:max-h-[85%]! sm:w-[420px]! sm:min-w-0!'
       contentClassName='px-4! sm:px-4! mt-[-4px]'
       onClose={onClose}
     >
@@ -383,7 +383,7 @@ const TTSPlayerSheet = ({
         // hidden; on mobile the handle already provides the gap.
         <div
           className={clsx(
-            'flex w-full flex-col items-center gap-4 pb-4 sm:pt-4',
+            'br-tts-main flex w-full flex-col items-center gap-4 pb-4 sm:pt-4',
             // The lyric sheet is the one element here that can take whatever
             // height is left, so it claims it — and the transport below stays
             // put instead of being pushed into a scroll.
@@ -417,9 +417,11 @@ const TTSPlayerSheet = ({
                 showLyrics ? 'flex-1 items-start text-start' : 'w-full items-center text-center',
               )}
             >
-              <span className='line-clamp-1 w-full font-semibold'>{book?.title ?? ''}</span>
+              <span className='br-tts-title line-clamp-2 w-full font-semibold'>
+                {book?.title ?? ''}
+              </span>
               {sectionLabel && (
-                <span className='text-base-content/70 line-clamp-1 w-full text-sm'>
+                <span className='text-[var(--br-muted)] line-clamp-1 w-full text-sm'>
                   {sectionLabel}
                 </span>
               )}
@@ -445,7 +447,7 @@ const TTSPlayerSheet = ({
             />
           ) : (
             chapterRemainingSec !== null && (
-              <span className='text-base-content/70 text-xs'>
+              <span className='text-[var(--br-muted)] text-xs'>
                 {_('{{time}} left in chapter', { time: formatPlaybackTime(chapterRemainingSec) })}
               </span>
             )
@@ -524,7 +526,7 @@ const TTSPlayerSheet = ({
               className='not-eink:bg-base-200 eink-bordered flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl'
             >
               <span className='text-sm font-semibold tabular-nums'>{formatRate(rate)}</span>
-              <span className='text-base-content/60 max-w-full truncate px-1 text-xs'>
+              <span className='text-[var(--br-muted)] max-w-full truncate px-1 text-xs'>
                 {_('Speed')}
               </span>
             </button>
@@ -535,7 +537,7 @@ const TTSPlayerSheet = ({
               className='not-eink:bg-base-200 eink-bordered flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl'
             >
               <RiVoiceAiFill size={iconSize18} />
-              <span className='text-base-content/60 max-w-full truncate px-1 text-xs'>
+              <span className='text-[var(--br-muted)] max-w-full truncate px-1 text-xs'>
                 {currentVoiceName ? _(currentVoiceName) : _('Voice')}
               </span>
             </button>
@@ -546,7 +548,7 @@ const TTSPlayerSheet = ({
               className='not-eink:bg-base-200 eink-bordered flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl'
             >
               <MdAlarm size={iconSize18} />
-              <span className='text-base-content/60 max-w-full truncate px-1 text-xs tabular-nums'>
+              <span className='text-[var(--br-muted)] max-w-full truncate px-1 text-xs tabular-nums'>
                 {timerCaption}
               </span>
             </button>
@@ -556,12 +558,12 @@ const TTSPlayerSheet = ({
               type='button'
               aria-label={_('Offline Audio')}
               onClick={handleOpenDownloads}
-              className='not-eink:bg-base-200 eink-bordered flex w-full items-center gap-3 rounded-xl px-3 py-2.5'
+              className='br-offline-audio flex w-full items-center gap-3 rounded-xl px-3 py-2.5'
             >
               <MdOutlineFileDownload size={iconSize24} className='shrink-0' />
               <div className='flex min-w-0 flex-1 flex-col items-start'>
                 <span className='text-sm font-semibold'>{_('Offline Audio')}</span>
-                <span className='text-base-content/60 line-clamp-1 text-start text-xs'>
+                <span className='br-offline-description line-clamp-2 text-start text-xs'>
                   {premiumBadge
                     ? _('Download chapters for offline playback')
                     : _('{{done}} of {{total}} downloaded', {
@@ -595,7 +597,7 @@ const TTSPlayerSheet = ({
         <div className='flex w-full flex-col pb-4'>
           {voiceGroups.map((voiceGroup) => (
             <div key={voiceGroup.id}>
-              <div className='text-base-content/60 px-2 py-1 text-sm sm:text-xs'>
+              <div className='text-[var(--br-muted)] px-2 py-1 text-sm sm:text-xs'>
                 {/* A single-voice group (a book's own narrator) would otherwise
                     read "Narration: 1 voices". */}
                 {voiceGroup.voices.length === 1

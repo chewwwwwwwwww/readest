@@ -1,0 +1,113 @@
+/* Keep layout, virtualization, safe areas and reader documents upstream-owned. */
+.library-grid-item .br-book-title {
+  color: var(--br-ink);
+  font-family: var(--br-reading-font);
+  font-weight: 600;
+  line-height: 1.35;
+  min-height: 2.7em;
+}
+
+.library-grid-item .bookitem-main {
+  border-radius: var(--br-radius-cover);
+  box-shadow: none;
+}
+
+.library-grid-item .bookitem-main img {
+  box-shadow: none;
+}
+
+.br-reader-chrome {
+  color: var(--br-ink);
+  box-shadow: 0 1px 0 var(--br-surface);
+}
+
+.br-reader-chrome .btn {
+  border-radius: var(--br-radius-control);
+}
+
+.br-reader-chrome .dropdown-content {
+  border-radius: var(--br-radius-panel);
+  padding: var(--br-space-2);
+}
+
+.br-tts-sheet {
+  background: var(--br-paper);
+  color: var(--br-ink);
+  border-radius: var(--br-radius-panel);
+}
+
+.br-tts-main {
+  gap: var(--br-space-6);
+}
+
+.br-tts-title {
+  padding-inline-end: var(--br-space-6);
+  font-family: var(--br-reading-font);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.br-tts-main > div > img {
+  border-radius: var(--br-radius-cover);
+  box-shadow: none;
+}
+
+.br-tts-main button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.br-offline-audio {
+  background: var(--br-accent);
+  color: var(--br-on-accent);
+  min-height: 64px;
+  padding: var(--br-space-4);
+  border-radius: var(--br-radius-control);
+}
+
+.br-offline-description {
+  color: inherit;
+}
+
+.br-tts-sheet button:focus-visible,
+.br-reader-chrome button:focus-visible {
+  outline: 2px solid var(--br-accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 640px) {
+  .bookshelf-items {
+    padding-inline: var(--br-space-6);
+  }
+}
+
+html[data-eink='true'] .br-tts-sheet {
+  --br-muted: var(--br-ink);
+}
+
+html[data-eink='true'] .br-offline-audio {
+  background: var(--br-paper) !important;
+  color: var(--br-ink);
+  border: 1px solid var(--br-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .br-reader-chrome,
+  .br-tts-sheet,
+  .br-tts-sheet button {
+    transition: none;
+  }
+}
+
+/* Keep subdued metadata readable on the warmer shared palette. */
+h3[class~='text-base-content/65'],
+label[class~='text-base-content/65'],
+.library-grid-item [class~='text-neutral-content/70'] {
+  color: var(--br-muted);
+}
+
+html[data-eink='true'] h3[class~='text-base-content/65'],
+html[data-eink='true'] label[class~='text-base-content/65'],
+html[data-eink='true'] .library-grid-item [class~='text-neutral-content/70'] {
+  color: var(--br-ink);
+}

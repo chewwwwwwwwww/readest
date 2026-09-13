@@ -214,7 +214,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
         role='banner'
         aria-label={_('Header Bar')}
         className={clsx(
-          `header-bar bg-base-100 absolute top-0 z-10 flex h-11 w-full items-center pr-4`,
+          `br-reader-chrome header-bar bg-base-100 absolute top-0 z-10 flex h-11 w-full items-center pr-4`,
           `shadow-xs transition-[opacity,margin-top] duration-300`,
           trafficLightInHeader ? 'pl-20' : isSideBarVisible ? 'ps-4' : 'ps-4 sm:ps-1.5',
           appService?.hasRoundedWindow && 'rounded-window-top-right',

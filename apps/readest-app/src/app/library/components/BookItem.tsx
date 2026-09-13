@@ -168,7 +168,7 @@ const BookItem: React.FC<BookItemProps> = ({
       <div
         className={clsx(
           'flex w-full flex-col p-0',
-          mode === 'grid' && 'pt-2',
+          mode === 'grid' && 'pt-3',
           mode === 'list' && 'gap-1 py-0',
         )}
       >
@@ -176,7 +176,7 @@ const BookItem: React.FC<BookItemProps> = ({
           <h4
             className={clsx(
               'overflow-hidden text-ellipsis font-semibold',
-              mode === 'grid' && 'block whitespace-nowrap text-xs',
+              mode === 'grid' && 'br-book-title line-clamp-2 text-sm',
               mode === 'list' && 'line-clamp-1 text-base',
             )}
           >

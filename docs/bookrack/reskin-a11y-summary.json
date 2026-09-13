@@ -1,0 +1,368 @@
+{
+  "before": {
+    "dialog": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "library": {
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "nested-interactive",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    "reader": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "settings": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        },
+        {
+          "id": "label",
+          "impact": "critical",
+          "nodes": 3
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "tts": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 17
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    }
+  },
+  "after-final": {
+    "dialog": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "library": {
+      "violations": [
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "nested-interactive",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    "offline-chapters-mobile": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "reader": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "settings": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        },
+        {
+          "id": "label",
+          "impact": "critical",
+          "nodes": 3
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    },
+    "tts": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 13
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    "tts-mobile": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    }
+  },
+  "after-eink": {
+    "tts": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    "tts-mobile": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        },
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    "offline-chapters-mobile": {
+      "violations": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "aria-required-children",
+          "impact": "critical",
+          "nodes": 1
+        },
+        {
+          "id": "meta-viewport",
+          "impact": "moderate",
+          "nodes": 1
+        }
+      ]
+    }
+  }
+}
