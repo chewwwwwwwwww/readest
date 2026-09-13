@@ -98,3 +98,10 @@ Fresh local web captures at the source baseline, 1440 × 1000 desktop viewport:
 | TTS player sheet | [TTS](bookrack/screenshots/before/tts.png) | Playback and prominent offline audio action |
 
 These are actual application captures, separate from the generated concepts.
+
+Capture limitation: Settings and Dialog were captured during their opening
+opacity transition. The reader text visible through them is a capture timing
+artifact, not a verified upstream layering defect. They identify the screen
+inventory only and are not visual comparison evidence. The three reskin surfaces
+(library, reader chrome, TTS) have settled baseline captures. Subsequent captures
+wait for transitions to settle.
