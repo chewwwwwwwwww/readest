@@ -27,6 +27,7 @@ fn main() {
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
         tauri_build::AppManifest::new().commands(&[
             "start_server",
+            "prepare_tts_storage",
             "download_file",
             "upload_file",
             "get_environment_variable",

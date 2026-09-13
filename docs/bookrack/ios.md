@@ -111,6 +111,25 @@ Apple processing and any beta review remain operator steps. No upload, signing
 credential import or install is automated here. See the
 [Tauri iOS CLI](https://v2.tauri.app/reference/cli/#ios) for export options.
 
+## Durable downloaded audio
+
+Native audio storage is prepared before SQLite or audio packs are opened.
+`prepare_tts_storage` returns the app-owned `AppLocalData/tts-cache` directory
+(on iOS, inside Library/Application Support). The iOS directory is explicitly
+excluded from device/iCloud backups; a failure to set that property rejects
+preparation. These downloaded files are persistent application data instead of
+OS-purgeable cache files. User deletion or uninstall can still remove them.
+
+An existing `AppCache/tts-cache` directory migrates by one filesystem rename,
+including its SQLite database, WAL/SHM sidecars, audio packs and pin records.
+There is no partial copy or database merge. If migration is interrupted after
+the rename, the next launch reuses the durable directory and retries backup
+exclusion before opening the database. If both old and new roots already exist,
+preparation stops and preserves both. Stop the app and back up both complete
+directories before reconciling them; never overwrite one database with the
+other or delete the old directory just to clear the error. Operator recovery
+must retain any books pinned in either database.
+
 ## Validation and human gates
 
 The unsigned native build and Simulator visual checks passed; the dated evidence

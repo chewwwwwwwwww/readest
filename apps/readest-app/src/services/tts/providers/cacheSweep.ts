@@ -5,9 +5,9 @@
 // when a book's cache opens; every failure is swallowed — housekeeping must
 // never affect playback.
 
-import type { AppService } from '@/types/system';
+import type { AppService, BaseDir } from '@/types/system';
 
-const TTS_CACHE_ROOT = 'tts-cache';
+const DEFAULT_LOCATION: { root: string; base: BaseDir } = { root: 'tts-cache', base: 'Cache' };
 const META_FILE = 'meta.json';
 const DOWNLOADS_MARKER = 'downloads.json';
 // Never sweep a cache stamped within this window: a recent stamp usually
@@ -19,11 +19,12 @@ const RECENT_USE_GRACE_MS = 10 * 60 * 1000;
 export const touchTTSCacheMeta = async (
   appService: AppService,
   bookHash: string,
+  location = DEFAULT_LOCATION,
 ): Promise<void> => {
   try {
     await appService.writeFile(
-      `${TTS_CACHE_ROOT}/${bookHash}/${META_FILE}`,
-      'Cache',
+      `${location.root}/${bookHash}/${META_FILE}`,
+      location.base,
       JSON.stringify({ lastUsedAt: Date.now() }),
     );
   } catch {
@@ -36,11 +37,12 @@ export const sweepTTSCaches = async (
   activeBookHash: string,
   budgetBytes: number,
   now: () => number = Date.now,
+  location = DEFAULT_LOCATION,
 ): Promise<void> => {
   try {
     // Recursive listing with sizes; paths are host-separator relative paths
     // like `<hash>/packs/3-abcd1234.mp3` (backslashes on Windows).
-    const files = await appService.readDirectory(TTS_CACHE_ROOT, 'Cache');
+    const files = await appService.readDirectory(location.root, location.base);
     const books = new Map<string, { size: number; pinned: boolean }>();
     for (const file of files) {
       const parts = file.path.split(/[/\\]/);
@@ -60,8 +62,8 @@ export const sweepTTSCaches = async (
       let lastUsedAt = 0;
       try {
         const raw = (await appService.readFile(
-          `${TTS_CACHE_ROOT}/${hash}/${META_FILE}`,
-          'Cache',
+          `${location.root}/${hash}/${META_FILE}`,
+          location.base,
           'text',
         )) as string;
         const parsed = JSON.parse(raw) as { lastUsedAt?: number };
@@ -77,7 +79,7 @@ export const sweepTTSCaches = async (
     for (const candidate of candidates) {
       if (total <= budgetBytes) break;
       try {
-        await appService.deleteDir(`${TTS_CACHE_ROOT}/${candidate.hash}`, 'Cache', true);
+        await appService.deleteDir(`${location.root}/${candidate.hash}`, location.base, true);
         total -= candidate.size;
       } catch (err) {
         console.warn('TTS cache sweep failed to delete', candidate.hash, err);

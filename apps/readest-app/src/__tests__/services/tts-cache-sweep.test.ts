@@ -37,6 +37,18 @@ describe('sweepTTSCaches', () => {
     } as unknown as AppService;
   });
 
+  test('persistent native sweep evicts warm books and preserves downloads', async () => {
+    bookCache('aaa', 100, null);
+    bookCache('bbb', 100, null);
+    files.push({ path: 'bbb/downloads.json', size: 1 });
+    bookCache('ccc', 100, null);
+    await sweepTTSCaches(appService, 'aaa', 100, () => NOW, {
+      root: '/support/tts-cache',
+      base: 'None',
+    });
+    expect(deleteDir).toHaveBeenCalledExactlyOnceWith('/support/tts-cache/ccc', 'None', true);
+  });
+
   test('does nothing while the total is under budget', async () => {
     bookCache('aaa', 40, NOW - 5 * HOUR);
     bookCache('bbb', 40, NOW - 9 * HOUR);

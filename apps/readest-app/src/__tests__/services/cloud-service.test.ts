@@ -5,6 +5,9 @@ import { BaseDir, FileSystem } from '@/types/system';
 import { useABSServerStore } from '@/store/absServerStore';
 import { makeAbsFilePath } from '@/utils/audiobook';
 
+const ttsLocation = vi.hoisted(() => vi.fn());
+vi.mock('@/services/tts/providers/storageLocation', () => ({ storageLocation: ttsLocation }));
+
 // Mock external dependencies
 vi.mock('@/utils/book', () => ({
   getDir: vi.fn((book: Book) => book.hash),
@@ -79,6 +82,7 @@ describe('cloudService', () => {
   let mockFs: FileSystem;
 
   beforeEach(() => {
+    ttsLocation.mockResolvedValue({ root: 'tts-cache', base: 'Cache' });
     vi.clearAllMocks();
     mockFs = createMockFs();
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -190,6 +194,17 @@ describe('cloudService', () => {
         await deleteBook(mockFs, book, 'purge');
 
         expect(mockFs.removeDir).toHaveBeenCalledWith(book.hash, 'Books', true);
+      });
+
+      test('purge removes the persistent native audio directory', async () => {
+        ttsLocation.mockResolvedValue({ root: '/support/tts-cache', base: 'None' });
+        const book = createMockBook();
+        await deleteBook(mockFs, book, 'purge');
+        expect(mockFs.removeDir).toHaveBeenCalledWith(
+          `/support/tts-cache/${book.hash}`,
+          'None',
+          true,
+        );
       });
 
       test('removes the per-book TTS audio cache (#tts-cache)', async () => {

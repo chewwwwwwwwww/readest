@@ -71,6 +71,12 @@
           "path": "$TEMP/**/*"
         },
         {
+          "path": "$APPLOCALDATA/tts-cache"
+        },
+        {
+          "path": "$APPLOCALDATA/tts-cache/**/*"
+        },
+        {
           "path": "$APPCACHE"
         },
         {
@@ -213,6 +219,7 @@
     "native-bridge:default",
     "sentry:default",
     "allow-start-server",
+    "allow-prepare-tts-storage",
     "allow-download-file",
     "allow-upload-file",
     "allow-get-environment-variable",
