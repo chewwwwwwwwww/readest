@@ -113,10 +113,9 @@ credential import or install is automated here. See the
 
 ## Validation and human gates
 
-Record the actual export/native build commands and outcomes in the PR. A passing
-web build or configuration check is not evidence of a compiled iOS app. Until a
-native build succeeds and design assets are verified in it, bookrack issue #6
-remains open.
+The unsigned native build and Simulator visual checks passed; the dated evidence
+is recorded below. Physical-device behavior and Apple release signing remain
+operator gates.
 
 Human steps: finish Apple identity/capability setup, sign, install on iPhone/iPad,
 import one DRM-free book, download its audio, then fully close the app and verify
@@ -126,3 +125,64 @@ Fallback: serve the self-hosted web client via trusted HTTPS and use Safari's
 Share → Add to Home Screen. It provides the same self-hosted unlock without Apple
 signing; browser storage may be evicted. Follow bookrack's `docs/BRINGUP.md` and
 test offline playback on the actual device before relying on it.
+
+## Verified native build (2026-09-13)
+
+The clean local-only Tauri frontend export passed (about 4.5 minutes), with 232
+JavaScript source maps stripped without uploading. Inspection confirmed Bookrack's
+surface selectors, the baked self-hosted access fallback and offline chapter
+route. Three inherited CSS maps remain. All 18 icon catalog entries have files;
+the installed launch storyboard matches the committed source. Main-app metadata
+includes LaunchScreen, background audio and version 0.12.8.
+
+The unsigned Apple-silicon iOS Simulator build exited 0 and produced
+`apps/readest-app/src-tauri/gen/apple/build/arm64-sim/Readest.app`. Its executable
+was approximately 57 MB; the compiled core library was approximately 196 MB.
+After the already verified frontend export, the successful native-only retry
+ran from `apps/readest-app`:
+
+```bash
+pnpm tauri ios build --ci --no-sign --target aarch64-sim \
+  --config '{"build":{"beforeBuildCommand":""},"bundle":{"iOS":{"developmentTeam":null}}}' \
+  -- --locked
+```
+
+This retry reused the verified static export; the normal wrapper should continue
+to build its frontend. An initial Turbopack aggregation-cache panic was recovered
+by moving the previous web `.next` cache aside and rebuilding the native export
+cleanly. The test host used an isolated rustup installation: Tauri's Xcode script
+environment dropped custom `RUSTUP_HOME`, so placing the selected toolchain's
+actual `bin` directory first in `PATH` resolved the local toolchain lookup.
+`CARGO_BUILD_JOBS=4` limited compilation concurrency. Standard operator rustup
+installation does not require the test host's temporary paths.
+
+Xcode still warned that the widget/share extensions' `CFBundleShortVersionString`
+was 1.0 while the parent app was 0.12.8. Align all target versions during the
+Apple identity/capability preparation before signing or distributing.
+
+The compiler ran with `--no-sign`. During Simulator-only QA, SplashBoard rejected
+the unsigned launch storyboard resource with Security error -67056. A local
+ad-hoc signature (`codesign --force --deep --sign - Readest.app`) was applied to
+the generated QA bundle before reinstalling it. This uses no Apple certificate,
+provisioning profile or developer account; it is not device signing or a
+redistributable release.
+
+On a dedicated iPhone 17 Simulator running iOS 26.5, the installed app rendered
+its [Bookrack icon](screenshots/ios/icon.png), the full-screen
+[paper-and-moss launch mark](screenshots/ios/splash.png), and the
+[native library](screenshots/ios/library.png). The splash image is a stable frame
+from a cold-launch recording after the local ad-hoc resource signature. No
+physical device was connected or installed during this QA.
+
+If unsigned Simulator launch-resource validation produces Security error -67056,
+apply the following only to the generated Simulator QA bundle, then reinstall it
+in the dedicated Simulator:
+
+```bash
+codesign --force --deep --sign - \
+  src-tauri/gen/apple/build/arm64-sim/Readest.app
+```
+
+This does not replace the Apple signing and physical-device acceptance steps
+above. No TestFlight upload or offline audio playback on a physical device was
+performed.
