@@ -446,6 +446,22 @@ describe('TTSPlayerSheet', () => {
     expect(routerPush).not.toHaveBeenCalled();
   });
 
+  test('offline audio row: self-hosted signed-out users see download status and open chapters', () => {
+    vi.stubEnv('NEXT_PUBLIC_SELF_HOSTED', 'true');
+    mockAuth.user = null;
+    mockQuota.userProfilePlan = undefined;
+    try {
+      render(<TTSPlayerSheet {...makeProps({ downloads: makeDownloads() })} />);
+      expect(screen.queryByText('Premium')).toBeNull();
+      expect(screen.getByText('1 of 1 downloaded')).toBeTruthy();
+      fireEvent.click(screen.getByLabelText('Offline Audio'));
+      expect(screen.getByText('chapters-view')).toBeTruthy();
+      expect(routerPush).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   test('offline audio row: a free user sees a Premium badge and is routed to upgrade', () => {
     mockQuota.userProfilePlan = 'free';
     const props = makeProps({ downloads: makeDownloads() });

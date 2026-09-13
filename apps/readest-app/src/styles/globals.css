@@ -1,4 +1,6 @@
 @import 'tailwindcss' source('../');
+@import './bookrack-tokens.css';
+@import './bookrack-surfaces.css';
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui' {
   themes:
@@ -20,7 +22,7 @@
 @custom-variant hover (&:hover);
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
 
   /* Tailwind 4 replaced the default palette with wider-gamut oklch values, so
      every `*-green-500`-style accent shifted (more vivid on P3 displays). Pin
