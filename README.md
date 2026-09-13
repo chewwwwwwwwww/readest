@@ -1,3 +1,18 @@
+## Personal bookrack fork
+
+This fork is Brandon’s personal Readwise-Reader-style reskin of Readest, with
+self-hosted builds that unlock offline TTS downloads. Source remains a sibling
+of the bookrack operations repository; it is never vendored there.
+
+Keep the fork delta small and token-driven. Upstream-sync conflicts are an
+ongoing maintenance cost of any fork. Readest remains AGPL-3.0-or-later: private
+use does not itself require publication; if this modified version is made
+available to others over a network, offer those users the corresponding source.
+
+See [bookrack build notes](docs/bookrack/build.md) for source and Docker setup.
+
+---
+
 <div align="center">
   <a href="https://readest.com?utm_source=github&utm_medium=referral&utm_campaign=readme" target="_blank">
     <img src="https://github.com/readest/readest/blob/main/apps/readest-app/src-tauri/icons/icon.png?raw=true" alt="Readest Logo" width="20%" />
