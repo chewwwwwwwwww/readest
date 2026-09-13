@@ -148,7 +148,7 @@ pnpm tauri ios build --ci --no-sign --target aarch64-sim \
 ```
 
 This retry reused the verified static export; the normal wrapper should continue
-to build its frontend. An initial Turbopack aggregation-cache panic was recovered
+to build its frontend. An initial Turbopack internal aggregation panic was recovered
 by moving the previous web `.next` cache aside and rebuilding the native export
 cleanly. The test host used an isolated rustup installation: Tauri's Xcode script
 environment dropped custom `RUSTUP_HOME`, so placing the selected toolchain's
