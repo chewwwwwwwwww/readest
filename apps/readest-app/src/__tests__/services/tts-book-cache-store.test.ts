@@ -36,6 +36,34 @@ vi.mock('@/services/tts/providers/opfsPackFs', () => ({
   createOpfsPackFs: vi.fn(async () => packState.fs),
 }));
 
+const native = vi.hoisted(() => ({ enabled: false, prepare: vi.fn() }));
+vi.mock('@/services/environment', () => ({ isTauriAppPlatform: () => native.enabled }));
+vi.mock('@tauri-apps/api/core', () => ({ invoke: native.prepare }));
+vi.mock('@tauri-apps/plugin-fs', () => ({
+  SeekMode: { Start: 0 },
+  open: vi.fn(async (path: string) => {
+    const bytes = packState.files.get(path);
+    if (!bytes) throw new Error('missing pack');
+    let offset = 0;
+    return {
+      seek: async (position: number) => {
+        offset = position;
+      },
+      read: async (target: Uint8Array) => {
+        const data = bytes.subarray(offset, offset + target.length);
+        target.set(data);
+        offset += data.length;
+        return data.length;
+      },
+      close: async () => {},
+    };
+  }),
+  writeFile: vi.fn(async (path: string, data: Uint8Array) => packState.fs.write(path, data)),
+  rename: vi.fn(async (from: string, to: string) => packState.fs.rename(from, to)),
+  readDir: vi.fn(async () => []),
+  remove: vi.fn(async (path: string) => packState.fs.remove(path)),
+}));
+
 import { NodeDatabaseService } from '@/services/database/nodeDatabaseService';
 import {
   BookTTSCacheStore,
@@ -62,6 +90,8 @@ describe('BookTTSCacheStore', () => {
 
   beforeEach(async () => {
     packState.files.clear();
+    native.enabled = false;
+    native.prepare.mockReset().mockResolvedValue('/support/tts-cache');
     db = await NodeDatabaseService.open(':memory:');
     createDir = vi.fn().mockResolvedValue(undefined);
     openDatabase = vi.fn().mockResolvedValue(db);
@@ -75,6 +105,59 @@ describe('BookTTSCacheStore', () => {
       deleteFile,
       readDirectory: vi.fn().mockResolvedValue([]),
     } as unknown as AppService;
+  });
+
+  test('native downloads put their database and packs outside purgeable Cache', async () => {
+    native.enabled = true;
+    const store = new BookTTSCacheStore(appService, () => 'hash123', 1024 * 1024);
+    await store.beginDownloadSections([7]);
+    await store.registerSectionMarks(7, ['0:a']);
+    await store.put('k1', entry());
+    await store.recordMarkKey(7, 0, 'k1');
+    await store.compact();
+    await store.completeDownloadSections([7]);
+    expect(native.prepare).toHaveBeenCalledWith('prepare_tts_storage');
+    expect(openDatabase).toHaveBeenCalledWith(
+      'tts-cache',
+      '/support/tts-cache/hash123/cache.db',
+      'None',
+    );
+    expect(
+      [...packState.files.keys()].some(
+        (path) => path.startsWith('/support/tts-cache/hash123/packs/') && path.endsWith('.mp3'),
+      ),
+    ).toBe(true);
+    expect((await store.getSectionStatuses()).get(7)?.pinned).toBe(true);
+    // A completed native pack remains playable without a synthesis request.
+    expect((await store.get('k1'))?.audio).toEqual(entry().audio);
+    await store.put('warm', entry());
+    await store.clearDownloads();
+    expect(await store.get('k1')).toBeNull();
+    expect((await store.get('warm'))?.audio).toEqual(entry().audio);
+    expect([...packState.files.keys()].some((path) => path.endsWith('.mp3'))).toBe(false);
+    expect(appService.readDirectory).toHaveBeenCalledWith('/support/tts-cache', 'None');
+    await store.close();
+  });
+
+  test('explicit downloads reject unavailable persistent storage instead of reporting success', async () => {
+    native.enabled = true;
+    native.prepare.mockRejectedValue(new Error('storage unavailable'));
+    const store = new BookTTSCacheStore(appService, () => 'hash123', 1024 * 1024);
+    await expect(store.beginDownloadSections([7])).rejects.toThrow(
+      'TTS download storage unavailable',
+    );
+    expect(openDatabase).not.toHaveBeenCalled();
+    expect(await store.get('k')).toBeNull();
+  });
+
+  test('headless native deletion uses persistent storage', async () => {
+    native.enabled = true;
+    await clearBookTTSDownloads(appService, 'hash123');
+    expect(appService.databaseExists).toHaveBeenCalledWith(
+      '/support/tts-cache/hash123/cache.db',
+      'None',
+    );
+    expect(deleteFile).toHaveBeenCalledWith('/support/tts-cache/hash123/downloads.json', 'None');
   });
 
   test('does nothing until the book hash resolves', async () => {

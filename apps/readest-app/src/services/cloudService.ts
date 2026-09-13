@@ -49,13 +49,13 @@ export async function deleteBook(
       if (await fs.exists(dir, 'Books')) {
         await fs.removeDir(dir, 'Books', true);
       }
-      // The per-book TTS audio cache lives under Cache (kept out of Books/
-      // so backups and sync never pick it up); purge erases every trace of
-      // the book, so drop it too. Non-purge deletes leave it: like
-      // config.json, a re-downloaded book resumes with a warm audio cache.
-      const ttsCacheDir = `tts-cache/${book.hash}`;
-      if (await fs.exists(ttsCacheDir, 'Cache')) {
-        await fs.removeDir(ttsCacheDir, 'Cache', true);
+      // Native TTS media lives in backup-excluded persistent storage. Resolve
+      // the same root as playback, including any legacy-cache migration.
+      const { storageLocation } = await import('./tts/providers/storageLocation');
+      const { root, base } = await storageLocation();
+      const ttsCacheDir = `${root}/${book.hash}`;
+      if (await fs.exists(ttsCacheDir, base)) {
+        await fs.removeDir(ttsCacheDir, base, true);
       }
     }
 

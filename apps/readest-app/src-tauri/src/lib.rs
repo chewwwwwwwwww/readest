@@ -43,6 +43,8 @@ mod sentry_config;
 #[cfg(desktop)]
 mod spawn_fresh_browser;
 mod transfer_file;
+mod tts_storage;
+mod tts_storage_dir;
 mod web_browser;
 #[cfg(desktop)]
 mod window_state;
@@ -488,6 +490,7 @@ pub fn run() {
         .plugin(tauri_plugin_oauth::init())
         .invoke_handler(tauri::generate_handler![
             start_server,
+            tts_storage::prepare_tts_storage,
             download_file,
             upload_file,
             get_environment_variable,

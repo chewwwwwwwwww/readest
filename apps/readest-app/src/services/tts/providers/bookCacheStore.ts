@@ -1,20 +1,21 @@
 // Per-book persistent TTS cache binding (see the design doc
 // .agents/plans/2026-07-13-tts-cache-sqlite-packs.md): each book gets its
-// own database under Cache/tts-cache/<book_hash>/, opened lazily on the
+// own database under tts-cache/<book_hash>/, opened lazily on the
 // first synthesize of a TTS session and closed when the client shuts down.
-// Every failure path degrades to "no cache": playback must never depend on
-// the cache working.
+// Playback degrades to "no cache" on storage failure; explicit downloads
+// reject instead of promising unavailable offline storage.
 //
 // The store also gets a pack filesystem so fully cached sections compact
-// into one MP3 pack file each: plugin-fs under AppCache on Tauri platforms,
-// OPFS in the browser (where supported). Compaction runs debounced after
+// into one MP3 pack file each: plugin-fs in native app-local data (Application
+// Support on iOS), OPFS in the browser. Compaction runs debounced after
 // manifest updates and once more at session close.
 
 import { isTauriAppPlatform } from '@/services/environment';
 import type { DatabaseService } from '@/types/database';
-import type { AppService } from '@/types/system';
+import type { AppService, BaseDir } from '@/types/system';
 import type { TTSCacheEntry, TTSCacheStore } from './cache';
 import { sweepTTSCaches, touchTTSCacheMeta } from './cacheSweep';
+import { storageLocation } from './storageLocation';
 import { createOpfsPackFs } from './opfsPackFs';
 import { SqliteTTSCacheStore, TTSPackFs } from './sqliteCacheStore';
 
@@ -56,23 +57,20 @@ export const setTTSCacheConfig = (config: TTSCacheConfig): void => {
   }
 };
 
-// Pack file IO under AppCache via plugin-fs (native platforms only). The
+// Pack file IO at the prepared absolute native storage path. The
 // plugin modules load lazily so the web bundle never pulls them in.
 const createNativePackFs = (dir: string): TTSPackFs => ({
   async write(name, data) {
-    const { writeFile, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-    await writeFile(`${dir}/${name}`, data, { baseDir: BaseDirectory.AppCache });
+    const { writeFile } = await import('@tauri-apps/plugin-fs');
+    await writeFile(`${dir}/${name}`, data);
   },
   async rename(from, to) {
-    const { rename, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-    await rename(`${dir}/${from}`, `${dir}/${to}`, {
-      oldPathBaseDir: BaseDirectory.AppCache,
-      newPathBaseDir: BaseDirectory.AppCache,
-    });
+    const { rename } = await import('@tauri-apps/plugin-fs');
+    await rename(`${dir}/${from}`, `${dir}/${to}`);
   },
   async readRange(name, offset, length) {
-    const { open, BaseDirectory, SeekMode } = await import('@tauri-apps/plugin-fs');
-    const file = await open(`${dir}/${name}`, { read: true, baseDir: BaseDirectory.AppCache });
+    const { open, SeekMode } = await import('@tauri-apps/plugin-fs');
+    const file = await open(`${dir}/${name}`, { read: true });
     try {
       await file.seek(offset, SeekMode.Start);
       const buffer = new Uint8Array(length);
@@ -90,8 +88,8 @@ const createNativePackFs = (dir: string): TTSPackFs => ({
   },
   async readSidecar(name) {
     try {
-      const { readTextFile, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-      const text = await readTextFile(`${dir}/${name}`, { baseDir: BaseDirectory.AppCache });
+      const { readTextFile } = await import('@tauri-apps/plugin-fs');
+      const text = await readTextFile(`${dir}/${name}`);
       const parsed = JSON.parse(text);
       return parsed && Array.isArray(parsed.entries) ? parsed : null;
     } catch {
@@ -99,12 +97,12 @@ const createNativePackFs = (dir: string): TTSPackFs => ({
     }
   },
   async remove(name) {
-    const { remove, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-    await remove(`${dir}/${name}`, { baseDir: BaseDirectory.AppCache });
+    const { remove } = await import('@tauri-apps/plugin-fs');
+    await remove(`${dir}/${name}`);
   },
   async list() {
-    const { readDir, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-    const entries = await readDir(dir, { baseDir: BaseDirectory.AppCache });
+    const { readDir } = await import('@tauri-apps/plugin-fs');
+    const entries = await readDir(dir);
     return entries.filter((entry) => entry.isFile).map((entry) => entry.name);
   },
 });
@@ -117,6 +115,7 @@ export class BookTTSCacheStore implements TTSCacheStore {
   #budgetBytes: number;
   #opening: Promise<{ db: DatabaseService; store: SqliteTTSCacheStore } | null> | null = null;
   #closing: Promise<void> | null = null;
+  #location: { root: string; base: BaseDir } = { root: 'tts-cache', base: 'Cache' };
   #compactTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(appService: AppService, getBookHash: () => string | null, budgetBytes: number) {
@@ -138,18 +137,20 @@ export class BookTTSCacheStore implements TTSCacheStore {
     }
     this.#opening = (async () => {
       try {
-        const dir = `tts-cache/${bookHash}`;
-        await this.#appService.createDir(dir, 'Cache', true);
+        this.#location = await storageLocation();
+        const { root, base } = this.#location;
+        const dir = `${root}/${bookHash}`;
+        await this.#appService.createDir(dir, base, true);
         let packFs: TTSPackFs | undefined;
         if (isTauriAppPlatform()) {
           const packsDir = `${dir}/packs`;
-          await this.#appService.createDir(packsDir, 'Cache', true);
+          await this.#appService.createDir(packsDir, base, true);
           packFs = createNativePackFs(packsDir);
         } else {
           packFs = await createOpfsPackFs(`${dir}/packs`);
         }
         // 'tts-cache' has no registered migrations; the store owns its DDL.
-        const db = await this.#appService.openDatabase('tts-cache', `${dir}/cache.db`, 'Cache');
+        const db = await this.#appService.openDatabase('tts-cache', `${dir}/cache.db`, base);
         const store = new SqliteTTSCacheStore(db, { budgetBytes: this.#budgetBytes, packFs });
         // Reconcile the durable marker before a cross-book sweep. A crash can
         // occur between pinning SQLite rows and writing the marker; the next
@@ -161,8 +162,8 @@ export class BookTTSCacheStore implements TTSCacheStore {
         void store.gcPackFiles().catch(() => {});
         // Stamp this book as in use, then enforce the cross-book budget by
         // deleting whole least-recently-used book caches (this book exempt).
-        void touchTTSCacheMeta(this.#appService, bookHash).then(() =>
-          sweepTTSCaches(this.#appService, bookHash, this.#budgetBytes),
+        void touchTTSCacheMeta(this.#appService, bookHash, this.#location).then(() =>
+          sweepTTSCaches(this.#appService, bookHash, this.#budgetBytes, Date.now, this.#location),
         );
         // Adopt packs other devices produced (existence-checked, validated
         // on import); fire-and-forget like all cache housekeeping.
@@ -204,15 +205,15 @@ export class BookTTSCacheStore implements TTSCacheStore {
 
   async beginDownloadSections(sections: number[]): Promise<void> {
     const opened = await this.#open();
-    if (!opened) return;
+    if (!opened) throw new Error('TTS download storage unavailable');
     const bookHash = this.#getBookHash();
     if (!bookHash) return;
     // Write the eviction guard first. A crash may leave a harmless stale
     // marker, but must never leave pinned SQLite rows exposed to another
     // book's concurrent cross-cache sweep.
     await this.#appService.writeFile(
-      `tts-cache/${bookHash}/${DOWNLOADS_MARKER}`,
-      'Cache',
+      `${this.#location.root}/${bookHash}/${DOWNLOADS_MARKER}`,
+      this.#location.base,
       JSON.stringify({ pinned: true }),
     );
     try {
@@ -278,12 +279,16 @@ export class BookTTSCacheStore implements TTSCacheStore {
   }
 
   async #syncDownloadMarker(bookHash: string, store: SqliteTTSCacheStore): Promise<void> {
-    const path = `tts-cache/${bookHash}/${DOWNLOADS_MARKER}`;
+    const path = `${this.#location.root}/${bookHash}/${DOWNLOADS_MARKER}`;
     try {
       if (await store.hasDownloads()) {
-        await this.#appService.writeFile(path, 'Cache', JSON.stringify({ pinned: true }));
+        await this.#appService.writeFile(
+          path,
+          this.#location.base,
+          JSON.stringify({ pinned: true }),
+        );
       } else {
-        await this.#appService.deleteFile(path, 'Cache');
+        await this.#appService.deleteFile(path, this.#location.base);
       }
     } catch {
       // Marker repair is best-effort. SQLite remains authoritative and the
@@ -361,7 +366,7 @@ export class BookTTSCacheStore implements TTSCacheStore {
     } finally {
       await opened.db.close();
       const bookHash = this.#getBookHash();
-      if (bookHash) await touchTTSCacheMeta(this.#appService, bookHash);
+      if (bookHash) await touchTTSCacheMeta(this.#appService, bookHash, this.#location);
     }
   }
 }
@@ -374,10 +379,11 @@ export const clearBookTTSDownloads = async (
   appService: AppService,
   bookHash: string,
 ): Promise<void> => {
-  const dir = `tts-cache/${bookHash}`;
+  const { root, base } = await storageLocation();
+  const dir = `${root}/${bookHash}`;
   const dbPath = `${dir}/cache.db`;
-  if (!(await appService.databaseExists(dbPath, 'Cache'))) {
-    await appService.deleteFile(`${dir}/${DOWNLOADS_MARKER}`, 'Cache').catch(() => {});
+  if (!(await appService.databaseExists(dbPath, base))) {
+    await appService.deleteFile(`${dir}/${DOWNLOADS_MARKER}`, base).catch(() => {});
     return;
   }
 
@@ -387,7 +393,7 @@ export const clearBookTTSDownloads = async (
   } else {
     packFs = await createOpfsPackFs(`${dir}/packs`);
   }
-  const db = await appService.openDatabase('tts-cache', dbPath, 'Cache');
+  const db = await appService.openDatabase('tts-cache', dbPath, base);
   const budgetBytes = Math.max(1, getTTSCacheConfig().budgetMB * 1024 * 1024);
   const store = new SqliteTTSCacheStore(db, { budgetBytes, packFs });
   try {
@@ -396,5 +402,5 @@ export const clearBookTTSDownloads = async (
   } finally {
     await db.close();
   }
-  await appService.deleteFile(`${dir}/${DOWNLOADS_MARKER}`, 'Cache').catch(() => {});
+  await appService.deleteFile(`${dir}/${DOWNLOADS_MARKER}`, base).catch(() => {});
 };
