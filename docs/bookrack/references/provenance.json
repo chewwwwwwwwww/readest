@@ -1,0 +1,37 @@
+[
+  {
+    "file": "01-library.webp",
+    "asset_url": "https://d34adp677peecb.cloudfront.net/static/images/reader/Hero-Screen@2x.f141e5a122de.webp",
+    "source_page": "https://readwise.io/read",
+    "sha256": "dc1207b00ab432311eb9528954be7cc7f167075e08adccb88cd9f641549a8ea0",
+    "bytes": 176558
+  },
+  {
+    "file": "02-reading-chrome.webp",
+    "asset_url": "https://d34adp677peecb.cloudfront.net/static/images/reader/Anywhere-iPad@2x.b213642c953d.webp",
+    "source_page": "https://readwise.io/read",
+    "sha256": "0f361d7d6686f2142d55f419f6e626b05d91bcfd539d0c9816b13611501e138d",
+    "bytes": 110424
+  },
+  {
+    "file": "03-mobile-library.webp",
+    "asset_url": "https://d34adp677peecb.cloudfront.net/static/images/reader/Hero-Phone@2x.2ffe333ffd69.webp",
+    "source_page": "https://readwise.io/read",
+    "sha256": "54666b532fd0c7b13b3b3db8a6bd60c341fcfe3bf699233423336ddb965a8e53",
+    "bytes": 51604
+  },
+  {
+    "file": "04-tts-mobile-pause.png",
+    "asset_url": "https://docs.readwise.io/images/tts-pause.png",
+    "source_page": "https://docs.readwise.io/reader/docs/faqs/text-to-speech",
+    "sha256": "e8ec8f43e376e75bf59b48d90ca6479c0551056ce600cca212cfcf6cc84c5db4",
+    "bytes": 74293
+  },
+  {
+    "file": "05-tts-voice.png",
+    "asset_url": "https://docs.readwise.io/images/tts_change-voice.png",
+    "source_page": "https://docs.readwise.io/reader/docs/faqs/text-to-speech",
+    "sha256": "75eb889d9d1c66fb0023b27a8519d6d82fe71e6ee8c1c03089cc5aa91171f502",
+    "bytes": 23614
+  }
+]
