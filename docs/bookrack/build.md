@@ -55,5 +55,15 @@ App Store app. Native clients require our own build-time flag and iOS signing.
 ## Verification record
 
 Initial host: Apple silicon macOS, Xcode 26.6, pnpm 11.1.1, Rust 1.95.0.
-Build result will be recorded after the build completes; this paragraph is not
-a claim that web or iOS compilation has passed.
+On 2026-09-13 the commands above passed on this machine: frozen installation
+(1,653 packages), vendor preparation, and `NEXT_PUBLIC_SELF_HOSTED=true pnpm
+--filter @readest/readest-app build-web` exited 0. Next.js 16.3.3 compiled in
+3.2 minutes, completed TypeScript in 43 seconds and generated all 44 static pages.
+This validates the unmodified upstream web source at the pinned revision plus
+this fork’s documentation delta. It does not claim an iOS or Docker image build.
+
+The registry needed a second install attempt due to slow downloads. The successful
+retry used `pnpm install --frozen-lockfile --network-concurrency=8
+--fetch-timeout=180000`. No dependency versions or lockfile entries changed.
+Next reported existing Serwist/Turbopack and deprecated middleware warnings;
+the build still exited successfully.
