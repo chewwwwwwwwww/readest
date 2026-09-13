@@ -95,6 +95,6 @@ Fresh local web captures at the source baseline, 1440 × 1000 desktop viewport:
 | Reader chrome | [Reader](bookrack/screenshots/before/reader.png) | Toolbar and menus around user-controlled text |
 | Settings | [Settings](bookrack/screenshots/before/settings.png) | Inherit tokens, preserve settings primitives |
 | Dialogs | [Dialog](bookrack/screenshots/before/dialog.png) | Inherit tokens, preserve focus and interaction |
-| TTS player sheet | Capture pending | Playback and prominent offline audio action |
+| TTS player sheet | [TTS](bookrack/screenshots/before/tts.png) | Playback and prominent offline audio action |
 
 These are actual application captures, separate from the generated concepts.
